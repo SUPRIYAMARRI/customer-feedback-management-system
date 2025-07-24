@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FeedbackPro – Login & Feedback</title>
+
+  <!-- Shared assets -->
+  <link rel="stylesheet" href="form.css" /> <!-- Feedback page styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Auth (login / signup) styles – scoped to #login-section only -->
+  <style>
+    #login-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background:black;
+      font-family: Arial, sans-serif;
+    }
+    #login-section .container {
+      background:black;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    #login-section h2 { text-align: center; margin-bottom: 1rem; color:white; }
+    #login-section label { display: block; margin-top: 1rem; font-weight: bold; color:white; }
+    #login-section input {
+      width: 100%; padding: 0.6rem; margin-top: 0.3rem;
+      border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
+    }
+    #login-section button {
+      margin-top: 1.5rem; width: 100%; padding: 0.75rem;
+      background:yellow; border: none; border-radius: 6px; color: black; font-size: 1rem; cursor: pointer;
+    }
+    #login-section button:hover { background: yellow; }
+    #login-section .toggle-link {
+      text-align: center; margin-top: 1rem; color: white; cursor: pointer; user-select: none;
+    }
+    #login-section .toggle-link:hover { text-decoration: underline; }
+    #login-section #message { margin-top: 1rem; text-align: center; font-weight: bold; }
+    #login-section #message.error   { color: #dc3545; }
+    #login-section #message.success { color: #28a745; }
+  </style>
+</head>
+<body>
+
+<!-- ============== LOGIN / SIGN‑UP SECTION (initially visible) ============== -->
+<section id="login-section">
+  <div class="container" id="form-container"><!-- JS injects the auth forms here --></div>
+</section>
+
+<!-- ============== FEEDBACK APPLICATION SECTION (hidden until login) ============== -->
+<section id="app-section" style="display:none;">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo"><i class="fas fa-comment-dots"></i> FeedbackPro</div>
+    <ul class="nav-links">
+      <li><a href="#feedback">Feedback</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="#" id="logoutLink">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Welcome to FeedbackPro</h1>
+      <p>We care about your experience. Please take a moment to tell us how we're doing.</p>
+      <a href="#feedback" class="btn">Give Feedback</a>
+    </div>
+  </section>
+
+  <!-- Feedback Form -->
+  <div class="container" id="feedback">
+    <form action="/" method="post" enctype="multipart/form-data">
+      <h2>Feedback Form</h2>
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="company">Company:</label>
+      <input type="text" id="company" name="company" />
+
+      <label for="product">Product Name:</label>
+      <input type="text" id="product" name="product" required />
+
+      <label for="price">Product Price:</label>
+      <input type="number" id="price" name="price" required />
+
+      <label>Feedback Categories:</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="category" value="Quality" id="qualityCheckbox"> Product Quality</label>
+        <label><input type="checkbox" name="category" value="Service"> Customer Service</label>
+        <label><input type="checkbox" name="category" value="Delivery"> Delivery Experience</label>
+        <label><input type="checkbox" name="category" value="Support"> Technical Support</label>
+      </div>
+
+      <div id="imageUploadSection" style="display:none;">
+        <label for="image">Upload Product Image:</label>
+        <input type="file" id="image" name="image" accept="image/*">
+      </div>
+
+      <label for="rating">Rating (1 to 5):</label>
+      <input type="number" id="rating" name="rating" min="1" max="5" required />
+
+      <label for="feedbackText">Your Feedback:</label>
+      <textarea id="feedbackText" name="feedback" rows="4" required></textarea>
+
+      <button type="submit">Submit Feedback</button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer id="contact" class="footer">
+    <div class="footer-left"><p>&copy; 2025 FeedbackPro. All rights reserved.</p></div>
+    <div class="footer-center">
+      <p><i class="fas fa-envelope"></i> <a href="mailto:support@feedbackpro.com">support@feedbackpro.com</a></p>
+      <p><i class="fas fa-phone"></i> +91&nbsp;98765&nbsp;43210</p>
+      <p><i class="fas fa-map-marker-alt"></i> 123 Feedback Lane, Hyderabad, India</p>
+    </div>
+    <div class="footer-right">
+      <a href="#"><i class="fas fa-envelope"></i></a>
+      <a href="#"><i class="fab fa-x-twitter"></i></a>
+      <a href="#"><i class="fab fa-google"></i></a>
+      <a href="#"><i class="fas fa-mobile-alt"></i></a>
+    </div>
+  </footer>
+</section>
+
+<!-- ============================ SCRIPTS ============================ -->
+<script>
+/* -------- Local‑storage "database" for demo -------- */
+let users = JSON.parse(localStorage.getItem('users') || '[]');
+function saveUsers() { localStorage.setItem('users', JSON.stringify(users)); }
+
+/* -------- DOM refs -------- */
+const loginSection  = document.getElementById('login-section');
+const appSection    = document.getElementById('app-section');
+const container     = document.getElementById('form-container');
+
+/* -------- Small helpers -------- */
+function showMessage(text, isError = false) {
+  const msg = document.getElementById('message');
+  if (msg) {
+    msg.textContent = text;
+    msg.className   = isError ? 'error' : 'success';
+  }
+}
+function clearMessage() { const msg = document.getElementById('message'); if (msg) msg.textContent = ''; }
+
+/* -------- Login UI -------- */
+function renderLogin() {
+  container.innerHTML = `
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" required placeholder="you@example.com" />
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" required placeholder="••••••••" />
+      <button type="submit">Log In</button>
+    </form>
+    <div id="message"></div>
+    <div class="toggle-link" id="showSignup">Don't have an account? Sign up</div>
+  `;
+
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    clearMessage();
+    const email    = e.target.loginEmail.value.trim().toLowerCase();
+    const password = e.target.loginPassword.value;
+    const user     = users.find(u => u.email === email);
+
+    if (!user)                 { showMessage('User not found. Please sign up.', true); return; }
+    if (user.password !== password) { showMessage('Incorrect password.', true); return; }
+
+    showMessage(`Welcome back, ${email}!`, false);
+    setTimeout(showApp, 800);
+  });
+
+  document.getElementById('showSignup').onclick = () => { clearMessage(); renderSignup(); };
+}
+
+/* -------- Sign‑up UI -------- */
+function renderSignup() {
+  container.innerHTML = `
+    <h2>Create Account</h2>
+    <form id="signupForm">
+      <label for="signupEmail">Email</label>
+      <input type="email" id="signupEmail" required placeholder="you@example.com" />
+      <label for="signupPassword">Password</label>
+      <input type="password" id="signupPassword" required placeholder="Choose a password" />
+      <button type="submit">Sign Up</button>
+    </form>
+    <div id="message"></div>
+    <div class="toggle-link" id="showLogin">Already have an account? Log in</div>
+  `;
+
+  document.getElementById('signupForm').addEventListener('submit', e => {
+    e.preventDefault();
+    clearMessage();
+    const email    = e.target.signupEmail.value.trim().toLowerCase();
+    const password = e.target.signupPassword.value;
+
+    if (users.some(u => u.email === email)) { showMessage('Email is already registered.', true); return; }
+
+    const pwdOk = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+=]).{6,}$/.test(password);
+    if (!pwdOk) {
+      showMessage('Password must contain uppercase, lowercase, special char and be ≥6 chars.', true);
+      return;
+    }
+
+    users.push({ email, password });
+    saveUsers();
+    e.target.reset();               // tidy up the old form
+
+    /* ====== immediately switch to Login and show success ====== */
+    renderLogin();                  // draw the login UI
+    showMessage('Account created successfully! Please log in.', false);
+  });
+
+  document.getElementById('showLogin').onclick = () => { clearMessage(); renderLogin(); };
+}
+
+/* -------- After login -------- */
+function showApp() {
+  loginSection.style.display = 'none';
+  appSection.style.display   = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const qualityCheckbox   = document.getElementById('qualityCheckbox');
+  const imageUploadSection = document.getElementById('imageUploadSection');
+
+  qualityCheckbox.addEventListener('change', () => {
+    imageUploadSection.style.display = qualityCheckbox.checked ? 'block' : 'none';
+    if (!qualityCheckbox.checked) document.getElementById('image').value = '';
+  });
+}
+
+/* -------- Logout link -------- */
+document.getElementById('logoutLink').addEventListener('click', e => {
+  e.preventDefault();
+  appSection.style.display   = 'none';
+  loginSection.style.display = 'flex';
+  renderLogin();
+});
+
+/* -------- Start -------- */
+renderLogin();
+</script>
+
+</body>
+</html>
+```

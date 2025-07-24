@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login & Sign-up Demo with Password Rules</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    width: 320px;
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: bold;
+    color: #444;
+  }
+  input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 0.3rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: #007bff;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #0056b3;
+  }
+  .toggle-link {
+    text-align: center;
+    margin-top: 1rem;
+    color: #007bff;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-link:hover {
+    text-decoration: underline;
+  }
+  #message {
+    margin-top: 1rem;
+    text-align: center;
+    font-weight: bold;
+  }
+  #message.error {
+    color: #dc3545;
+  }
+  #message.success {
+    color: #28a745;
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="form-container">
+  <!-- Forms will be inserted here by JS -->
+</div>
+
+<script>
+  const container = document.getElementById('form-container');
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+  function saveUsers() {
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
+  function showMessage(text, isError = false) {
+    const msg = document.getElementById('message');
+    if (msg) {
+      msg.textContent = text;
+      msg.className = isError ? 'error' : 'success';
+    }
+  }
+
+  function clearMessage() {
+    const msg = document.getElementById('message');
+    if (msg) msg.textContent = '';
+  }
+
+  // Render Login Form
+  function renderLogin() {
+    container.innerHTML = `
+      <h2>Login</h2>
+      <form id="loginForm">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required placeholder="you@example.com" />
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required placeholder="••••••••" />
+        <button type="submit">Log In</button>
+      </form>
+      <div id="message"></div>
+      <div class="toggle-link" id="showSignup">Don't have an account? Sign up</div>
+    `;
+
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      clearMessage();
+      const email = e.target.loginEmail.value.trim().toLowerCase();
+      const password = e.target.loginPassword.value;
+
+      const user = users.find(u => u.email === email);
+      if (!user) {
+        showMessage('User not found. Please sign up.', true);
+        return;
+      }
+      if (user.password !== password) {
+        showMessage('Incorrect password.', true);
+        return;
+      }
+
+      showMessage(`Welcome back, ${email}!`, false);
+      e.target.reset();
+    });
+
+    document.getElementById('showSignup').addEventListener('click', () => {
+      clearMessage();
+      renderSignup();
+    });
+  }
+
+  // Render Sign-up Form
+  function renderSignup() {
+    container.innerHTML = `
+      <h2>Create Account</h2>
+      <form id="signupForm">
+        <label for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" required placeholder="you@example.com" />
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" required placeholder="Choose a password" />
+        <button type="submit">Sign Up</button>
+      </form>
+      <div id="message"></div>
+      <div class="toggle-link" id="showLogin">Already have an account? Log in</div>
+    `;
+
+    document.getElementById('signupForm').addEventListener('submit', e => {
+      e.preventDefault();
+      clearMessage();
+      const email = e.target.signupEmail.value.trim().toLowerCase();
+      const password = e.target.signupPassword.value;
+
+      if (users.some(u => u.email === email)) {
+        showMessage('Email is already registered.', true);
+        return;
+      }
+
+      // Password validation:
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+=]).{6,}$/;
+      if (!passwordRegex.test(password)) {
+        showMessage('Password must contain uppercase, lowercase, special character and be at least 6 characters long.', true);
+        return;
+      }
+
+      users.push({ email, password });
+      saveUsers();
+      showMessage('Account created successfully! You can now log in.', false);
+      e.target.reset();
+    });
+
+    document.getElementById('showLogin').addEventListener('click', () => {
+      clearMessage();
+      renderLogin();
+    });
+  }
+
+  // Initial load: show login form
+  renderLogin();
+</script>
+
+</body>
+</html>
